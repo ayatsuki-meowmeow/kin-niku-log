@@ -2,8 +2,8 @@
   "name": "@repo/api",
   "type": "module",
   "scripts": {
-    "dev": "bun run --hot src/index.ts",
-    "build": "bun build src/index.ts --outdir dist",
+    "dev": "wrangler dev",
+    "build": "wrangler deploy --dry-run",
     "lint": "eslint --max-warnings 0",
     "check-types": "tsc --noEmit",
     "validate": "bun run lint && bun run check-types",
@@ -19,14 +19,15 @@
     "pg": "^8.20.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260927.1",
     "@hono/swagger-ui": "^0.6.1",
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
-    "@types/bun": "latest",
     "@types/pg": "^8.20.0",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.1",
     "openapi-typescript": "^7.13.0",
-    "tsx": "^4.21.0"
+    "tsx": "^4.21.0",
+    "wrangler": "^4.141.0"
   }
 }
