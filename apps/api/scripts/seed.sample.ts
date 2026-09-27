@@ -1,7 +1,12 @@
-import { createUser } from "../src/crud";
+import { createUser } from '../src/crud'
+import { createDb } from '../src/db'
 
 async function sampleSeed() {
-  const user = await createUser({
+  const databaseUrl = process.env.DATABASE_URL
+  if (!databaseUrl) throw new Error('DATABASE_URL is not set')
+  const db = createDb(databaseUrl)
+
+  const user = await createUser(db, {
     name: 'Alice',
     email: 'alice1234@example.com'
   });
@@ -9,4 +14,3 @@ async function sampleSeed() {
 }
 
 sampleSeed();
-
