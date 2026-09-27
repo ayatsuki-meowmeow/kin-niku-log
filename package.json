@@ -1,5 +1,5 @@
 {
-  "name": "freak",
+  "name": "kin-niku-log",
   "private": true,
   "scripts": {
     "build": "turbo run build",

@@ -1,23 +1,26 @@
-# next-hono-starter
+# kin-niku-log
 
-Next.js + Hono のモノレポ scaffold。個人開発・学習用途を想定。
+筋トレ記録アプリ。トレーニングの記録・プラン登録・タイマー、および記録から AI に渡すための
+定型文を生成する機能を持つ。
+
+アプリ開発に加えて、バックエンド/インフラ(DB 設計・デプロイ周り)の学習と、
+AI エージェント活用ワークフローのブラッシュアップも目的としている。
+目的・機能要件・ロードマップの詳細は [プロジェクト概要](docs/project-overview.md) を参照。
+
+> **現状について**: コードは [next-hono-starter](https://github.com/ayatsuki-meowmeow/next-hono-starter)
+> の初期状態をベースにしており、Phase 1 で下記の技術スタックへ移行中。
+> 以降のディレクトリ構成・セットアップ手順は移行前の状態を記載している(#8 で最終化する)。
 
 ## 技術スタック
 
-| 領域 | 技術 |
-|------|------|
-| モノレポ | Turborepo |
-| パッケージマネージャー / API ランタイム | Bun |
-| フロントエンド | Next.js 16 / React 19 |
-| バックエンド | Hono |
-| DB | PostgreSQL |
-| ORM | Drizzle ORM |
-| 状態管理 / データフェッチ | TanStack Query |
-| フォーム | React Hook Form + Zod |
-| UI | shadcn/ui + Tailwind CSS v4 |
-| スキーマ定義 | OpenAPI (スキーマファースト) |
-| 型生成（API） | openapi-typescript |
-| 型生成（FE クライアント） | orval |
+| 領域 | 技術 | デプロイ先 |
+|------|------|------------|
+| モノレポ | Turborepo + Bun workspaces | — |
+| フロントエンド | Vite + React (SPA) + TanStack Router | Cloudflare Pages |
+| API | Hono | Cloudflare Workers |
+| DB | Neon (PostgreSQL) + Drizzle ORM | Neon |
+| スキーマ定義 | OpenAPI (スキーマファースト) | — |
+| CI/CD | GitHub Actions | — |
 
 ## ディレクトリ構成
 
@@ -131,4 +134,5 @@ export const mySchema = z.object({ ... })
 
 ## ドキュメント
 
+- [プロジェクト概要](docs/project-overview.md) — 目的・技術スタックの選定理由・ロードマップ・タスク管理の運用
 - [サンプル: users CRUD](docs/sample-users-crud.md) — 各レイヤーの繋がりを users の実装例で解説
