@@ -1,5 +1,4 @@
-"use client";
-
+import { createRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,8 +10,9 @@ import {
   getGetUsersQueryKey,
 } from "@/generated/users/users";
 import type { User } from "@/generated/model";
+import { Route as RootRoute } from "./__root";
 
-export default function Home() {
+function UsersPage() {
   const queryClient = useQueryClient();
   const { data, isLoading } = useGetUsers();
   const users = data?.data ?? [];
@@ -105,3 +105,9 @@ export default function Home() {
     </main>
   );
 }
+
+export const Route = createRoute({
+  getParentRoute: () => RootRoute,
+  path: "/",
+  component: UsersPage,
+});
