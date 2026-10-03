@@ -14,5 +14,8 @@
   "devDependencies": {
     "@repo/typescript-config": "*",
     "typescript": "5.9.2"
+  },
+  "volta": {
+    "extends": "../../package.json"
   }
 }
