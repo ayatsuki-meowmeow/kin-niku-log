@@ -1,1 +1,5 @@
+# pooled 接続。Workers ランタイム(neon-http ドライバ)用
 DATABASE_URL=postgres://<user>:<password>@<host>:<port>/<database>
+
+# direct 接続。drizzle-kit(generate/migrate 等)用。未設定の場合は drizzle-kit も DATABASE_URL(pooled)にフォールバックする
+DATABASE_URL_DIRECT=postgres://<user>:<password>@<host>:<port>/<database>

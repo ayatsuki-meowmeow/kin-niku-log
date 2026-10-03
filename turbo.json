@@ -6,7 +6,7 @@
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**"],
-      "env": ["DATABASE_URL"]
+      "env": ["DATABASE_URL", "DATABASE_URL_DIRECT"]
     },
     "lint": {
       "dependsOn": ["^lint"]
