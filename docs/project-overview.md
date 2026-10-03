@@ -77,23 +77,28 @@ scaffold 各レイヤーの繋がりは [sample-users-crud.md](./sample-users-cr
 
 ---
 
-## リポジトリの現状(2026-09-14 時点)
+## リポジトリの現状(2026-10-03 時点)
 
-現在のコードは `next-hono-starter` の初期状態そのままであり、上記の決定事項は
-**まだ反映されていない**。主な差分は以下。
+`next-hono-starter` をベースに、Phase 1 で上記の決定事項への移行を実施した
+(E2E の目視確認(#8)のみ未了)。現在の構成は以下。
 
-| 項目 | 現状 | 目標 |
-|---|---|---|
-| `apps/web` | Next.js 16 | Vite + React SPA |
-| `apps/api/src/db/index.ts` | `drizzle-orm/node-postgres` + `pg` | `drizzle-orm/neon-http` + `@neondatabase/serverless` |
-| API ランタイム | Bun (`bun run --hot`) | Cloudflare Workers(`cf` CLI + Vite / `@cloudflare/vite-plugin`、#15) |
-| ローカル DB | `docker-compose.yml` の PostgreSQL | Neon ブランチ |
-| `package.json` の `name` | `freak`(starter 由来) | `kin-niku-log` |
-| CI/CD | 未設定 | GitHub Actions |
+| 項目 | 現在の構成 |
+|---|---|
+| `apps/web` | Vite + React SPA + TanStack Router(`src/routes/`・`src/router.tsx`、dev は port 3000) |
+| `apps/api` | Hono on Cloudflare Workers。Vite + `@cloudflare/vite-plugin` + `cf` CLI(`cloudflare.config.ts`)、dev は port 8080 |
+| DB 接続 | `drizzle-orm/neon-http` + `@neondatabase/serverless`。`src/middleware/db.ts` が `c.env.DATABASE_URL` から接続を生成し、ハンドラは `c.get('db')` で取得 |
+| ローカル開発の DB | Neon ブランチ(接続文字列は `apps/api/.dev.vars`)。`docker-compose.yml` は廃止。当面は `production` ブランチを開発にも使う(#1 の決定) |
+| マイグレーション | `drizzle-kit`(`apps/api/drizzle.config.ts` が `.dev.vars` を読み、`DATABASE_URL_DIRECT` を優先、無ければ `DATABASE_URL`) |
+| Node | Volta でルート `package.json` に 22.23.3 を固定 |
+| `package.json` の `name` | `kin-niku-log` |
+| CI/CD | 未設定(Phase 2 で GitHub Actions を導入) |
 
 monorepo は Turborepo + Bun workspaces(`apps/*`, `packages/*`)。
 `packages/schema`(FE/BE 共通 Zod スキーマ)、`packages/ui`、`packages/eslint-config`、
-`packages/typescript-config` は継続利用の想定。
+`packages/typescript-config` は継続利用している。
+
+ルートの `bun dev` で web(3000)と api(8080)が同時に起動し、`/users`・`/doc`・
+`/openapi.yaml` が動作することは確認済み。
 
 ---
 
@@ -101,7 +106,7 @@ monorepo は Turborepo + Bun workspaces(`apps/*`, `packages/*`)。
 
 | Phase | 内容 | 状態 |
 |---|---|---|
-| Phase 1 | 技術スタックに合わせた足場整備(Vite 化 / Workers 化 / Neon 化 / `cf` CLI 移行) | 着手中(Issue #1〜#8、#15) |
+| Phase 1 | 技術スタックに合わせた足場整備(Vite 化 / Workers 化 / Neon 化 / `cf` CLI 移行) | 着手中(残り: #8 の E2E 目視確認、#17 の残骸掃除) |
 | Phase 2 | 自動化の仕組み(CI/CD、hooks、design.md フォーマット、受け入れテスト生成ループ)。ハーネス・ループ設計の見直しにも比重を置く(Phase 3 で実際に動かして改善する前提) | 未着手 |
 | Phase 3 | 人間が design.md を書き、機能単位で実装ループを回す | 未着手 |
 
