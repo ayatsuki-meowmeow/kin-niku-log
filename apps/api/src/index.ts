@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { swaggerUI } from '@hono/swagger-ui'
-import openapiYaml from '../../../openapi.yaml'
+import openapiYaml from '../../../openapi.yaml?raw'
 import { users } from './routes/users'
 import type { Bindings } from './types'
 

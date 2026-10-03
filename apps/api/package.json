@@ -2,8 +2,8 @@
   "name": "@repo/api",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
-    "build": "wrangler deploy --dry-run",
+    "dev": "vite",
+    "build": "vite build",
     "lint": "eslint --max-warnings 0",
     "check-types": "tsc --noEmit",
     "validate": "bun run lint && bun run check-types",
@@ -18,15 +18,20 @@
     "hono": "^4.12.12"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.62.5",
     "@cloudflare/workers-types": "^5.20260927.1",
     "@hono/swagger-ui": "^0.6.1",
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
+    "cf": "^1.0.0-beta.12",
     "dotenv": "^18.0.4",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.1",
     "openapi-typescript": "^7.13.0",
     "tsx": "^4.21.0",
-    "wrangler": "^4.141.0"
+    "vite": "^8.3.2"
+  },
+  "volta": {
+    "extends": "../../package.json"
   }
 }
