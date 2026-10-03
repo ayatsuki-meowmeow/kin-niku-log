@@ -86,7 +86,7 @@ scaffold 各レイヤーの繋がりは [sample-users-crud.md](./sample-users-cr
 |---|---|---|
 | `apps/web` | Next.js 16 | Vite + React SPA |
 | `apps/api/src/db/index.ts` | `drizzle-orm/node-postgres` + `pg` | `drizzle-orm/neon-http` + `@neondatabase/serverless` |
-| API ランタイム | Bun (`bun run --hot`) | Cloudflare Workers (`wrangler`) |
+| API ランタイム | Bun (`bun run --hot`) | Cloudflare Workers(`cf` CLI + Vite / `@cloudflare/vite-plugin`、#15) |
 | ローカル DB | `docker-compose.yml` の PostgreSQL | Neon ブランチ |
 | `package.json` の `name` | `freak`(starter 由来) | `kin-niku-log` |
 | CI/CD | 未設定 | GitHub Actions |
@@ -101,11 +101,11 @@ monorepo は Turborepo + Bun workspaces(`apps/*`, `packages/*`)。
 
 | Phase | 内容 | 状態 |
 |---|---|---|
-| Phase 1 | 技術スタックに合わせた足場整備(Vite 化 / Workers 化 / Neon 化) | 着手中(Issue #1〜#8) |
+| Phase 1 | 技術スタックに合わせた足場整備(Vite 化 / Workers 化 / Neon 化 / `cf` CLI 移行) | 着手中(Issue #1〜#8、#15) |
 | Phase 2 | 自動化の仕組み(CI/CD、hooks、design.md フォーマット、受け入れテスト生成ループ)。ハーネス・ループ設計の見直しにも比重を置く(Phase 3 で実際に動かして改善する前提) | 未着手 |
 | Phase 3 | 人間が design.md を書き、機能単位で実装ループを回す | 未着手 |
 
-- Phase 1 の完了条件: users CRUD サンプルが Vite SPA → Workers(`wrangler dev`) → Neon で end-to-end 動く
+- Phase 1 の完了条件: users CRUD サンプルが Vite SPA → Workers(Vite + `@cloudflare/vite-plugin` の dev サーバー) → Neon で end-to-end 動く
 - Phase 2 内では CI(PR 時チェック)を最初に入れ、以降の作業に安全網をかける
 - DB スキーマの検討(人間の学習領域)は Phase 2 と並行して進められる。
   ただし design.md フォーマットの確定は先に済ませる
@@ -163,7 +163,7 @@ Step 5                     #8 E2E + docs
 
 - マイグレーション実行前に SQL 差分を静的解析し、`DROP COLUMN` / `DROP TABLE` /
   破壊的な `ALTER ... TYPE` を検知したら強制停止(exit 1)
-- 本番デプロイコマンド(例: `wrangler deploy --env production`)も同様にフックで検知し、
+- 本番デプロイコマンド(例: `cf deploy`)も同様にフックで検知し、
   明示フラグが無い限りブロック
 
 リポジトリ https://github.com/ayatsuki-meowmeow/skills の `hooks/` 配下に追加していく想定。
