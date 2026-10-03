@@ -35,8 +35,7 @@ AI エージェント活用ワークフローのブラッシュアップも目�
 │   ├── eslint-config/
 │   └── typescript-config/
 ├── docs/             # ガイド・意思決定メモ
-├── openapi.yaml      # API スキーマ定義（唯一の正とする）
-└── docker-compose.yml
+└── openapi.yaml      # API スキーマ定義（唯一の正とする）
 ```
 
 ## セットアップ
@@ -44,7 +43,7 @@ AI エージェント活用ワークフローのブラッシュアップも目�
 ### 前提
 
 - Bun がインストール済みであること
-- Docker が起動していること
+- Neon のプロジェクトにアクセスでき、接続文字列(pooled / direct)を取得できること
 
 ### 手順
 
@@ -52,21 +51,22 @@ AI エージェント活用ワークフローのブラッシュアップも目�
 # 依存関係のインストール
 bun install
 
-# API の環境変数を設定
-cp apps/api/.env.sample apps/api/.env
+# API の環境変数を設定(テンプレートをコピーして Neon の接続文字列を記入する)
+cp apps/api/.dev.vars.example apps/api/.dev.vars
+#   DATABASE_URL        : pooled 接続(ホスト名に -pooler が付く)。Workers ランタイムが使う
+#   DATABASE_URL_DIRECT : direct 接続。drizzle-kit が使う。未設定なら DATABASE_URL(pooled)が使われる
 
-# PostgreSQL を起動
-docker compose up -d
-
-# マイグレーションファイルを生成して適用
+# マイグレーションを適用
 cd apps/api
-bunx drizzle-kit generate
 bunx drizzle-kit migrate
 
-# 開発サーバーを起動
+# 開発サーバーを起動(web と api が同時に起動する)
 cd ../..
 bun dev
 ```
+
+- `apps/api/.dev.vars` には認証情報が入るため、コミットしないこと(`.gitignore` 済み)
+- web から見た API の接続先は `VITE_API_URL` で変更できる(設定例は `apps/web/.env.example`。未設定時は `http://localhost:8080`)
 
 - フロントエンド: http://localhost:3000
 - バックエンド: http://localhost:8080
