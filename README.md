@@ -7,9 +7,9 @@
 AI エージェント活用ワークフローのブラッシュアップも目的としている。
 目的・機能要件・ロードマップの詳細は [プロジェクト概要](docs/project-overview.md) を参照。
 
-> **現状について**: コードは [next-hono-starter](https://github.com/ayatsuki-meowmeow/next-hono-starter)
-> の初期状態をベースにしており、Phase 1 で下記の技術スタックへ移行中。
-> 以降のディレクトリ構成・セットアップ手順は移行前の状態を記載している(#8 で最終化する)。
+> **出典・現状について**: コードは [next-hono-starter](https://github.com/ayatsuki-meowmeow/next-hono-starter)
+> をベースにしている。Phase 1 で下記の技術スタックへの移行は完了しており、
+> 以降のディレクトリ構成・セットアップ手順・コマンドは移行後の状態を記載している。
 
 ## 技術スタック
 
@@ -17,8 +17,8 @@ AI エージェント活用ワークフローのブラッシュアップも目�
 |------|------|------------|
 | モノレポ | Turborepo + Bun workspaces | — |
 | フロントエンド | Vite + React (SPA) + TanStack Router | Cloudflare Pages |
-| API | Hono | Cloudflare Workers |
-| DB | Neon (PostgreSQL) + Drizzle ORM | Neon |
+| API | Hono (Vite + `@cloudflare/vite-plugin` + `cf` CLI で開発・ビルド) | Cloudflare Workers |
+| DB | Neon (PostgreSQL) + Drizzle ORM (`neon-http` ドライバ) | Neon |
 | スキーマ定義 | OpenAPI (スキーマファースト) | — |
 | CI/CD | GitHub Actions | — |
 
@@ -27,8 +27,8 @@ AI エージェント活用ワークフローのブラッシュアップも目�
 ```
 .
 ├── apps/
-│   ├── api/          # Hono バックエンド (port 8080)
-│   └── web/          # Next.js フロントエンド (port 3000)
+│   ├── api/          # Hono バックエンド (Cloudflare Workers, dev は port 8080)
+│   └── web/          # Vite + React SPA フロントエンド (TanStack Router, port 3000)
 ├── packages/
 │   ├── schema/       # FE/BE 共通 Zod スキーマ
 │   ├── ui/           # shadcn/ui コンポーネント
@@ -42,7 +42,9 @@ AI エージェント活用ワークフローのブラッシュアップも目�
 
 ### 前提
 
-- Bun がインストール済みであること
+- Bun がインストール済みであること(パッケージマネージャー / モノレポのタスク実行に使う)
+- Node 22.23.3(ルート `package.json` の `volta` で固定。[Volta](https://volta.sh/) の利用を推奨。
+  Volta があればこのリポジトリ配下で自動的に該当バージョンが使われる)
 - Neon のプロジェクトにアクセスでき、接続文字列(pooled / direct)を取得できること
 
 ### 手順
@@ -77,7 +79,7 @@ bun dev
 | コマンド | 内容 |
 |----------|------|
 | `bun dev` | 全アプリの開発サーバー起動 |
-| `bun build` | 全アプリのビルド |
+| `bun build` | 全アプリのビルド(`turbo run build`) |
 | `bun lint` | 全アプリの lint |
 | `bun check-types` | 全アプリの型チェック |
 | `bun format` | コード整形 (Prettier) |
@@ -86,15 +88,25 @@ bun dev
 
 | コマンド | 内容 |
 |----------|------|
+| `bun run dev` | 開発サーバー起動(`vite`。`@cloudflare/vite-plugin` により Workers ランタイム上で動作、port 8080) |
+| `bun run build` | ビルド(`vite build`) |
+| `bun run lint` | lint |
+| `bun run check-types` | 型チェック |
+| `bun run validate` | lint + 型チェック |
 | `bun run generate` | `openapi.yaml` から TypeScript 型を生成 |
 | `bunx drizzle-kit generate` | スキーマ変更からマイグレーションファイルを生成 |
-| `bunx drizzle-kit migrate` | マイグレーションを適用 |
-| `bun run sample-seed` | サンプルデータを投入 |
+| `bunx drizzle-kit migrate` | マイグレーションを適用(`.dev.vars` の接続文字列を使う) |
+| `bun run sample-seed` | サンプルデータを投入(`.dev.vars` を読み込む) |
 
 ### apps/web
 
 | コマンド | 内容 |
 |----------|------|
+| `bun run dev` | 開発サーバー起動(`vite`、port 3000) |
+| `bun run build` | ビルド(`vite build`) |
+| `bun run preview` | ビルド結果のプレビュー(`vite preview`) |
+| `bun run lint` | lint |
+| `bun run check-types` | 型チェック |
 | `bun run generate` | orval で API クライアント (TanStack Query hooks) を生成 |
 
 ## 新しいエンドポイントを追加する流れ
@@ -113,12 +125,14 @@ bun dev
    bunx drizzle-kit generate
    bunx drizzle-kit migrate
       ↓
-5. apps/api/src/routes/ にルートを実装
+5. apps/api/src/crud/ に DB 操作関数、apps/api/src/routes/ にルートを実装
+   (src/index.ts の app.route() に登録する。DB は c.get('db') で取得)
       ↓
 6. apps/web で API クライアントを再生成
    bun run generate
       ↓
-7. apps/web/src/ で生成された hooks を使って画面を実装
+7. apps/web/src/routes/ で生成された hooks を使って画面を実装
+   (新規ルートは src/router.tsx の routeTree に追加する)
 ```
 
 ## 共通スキーマを追加する流れ
