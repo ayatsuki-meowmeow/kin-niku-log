@@ -106,7 +106,7 @@ monorepo は Turborepo + Bun workspaces(`apps/*`, `packages/*`)。
 
 | Phase | 内容 | 状態 |
 |---|---|---|
-| Phase 1 | 技術スタックに合わせた足場整備(Vite 化 / Workers 化 / Neon 化 / `cf` CLI 移行) | 着手中(残り: #8 の E2E 目視確認、#17 の残骸掃除) |
+| Phase 1 | 技術スタックに合わせた足場整備(Vite 化 / Workers 化 / Neon 化 / `cf` CLI 移行) | 完了 |
 | Phase 2 | 自動化の仕組み(CI/CD、hooks、design.md フォーマット、受け入れテスト生成ループ)。ハーネス・ループ設計の見直しにも比重を置く(Phase 3 で実際に動かして改善する前提) | 未着手 |
 | Phase 3 | 人間が design.md を書き、機能単位で実装ループを回す | 未着手 |
 
