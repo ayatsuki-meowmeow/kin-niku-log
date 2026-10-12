@@ -52,7 +52,7 @@
 
 | 領域 | 技術 | デプロイ先 |
 |---|---|---|
-| フロントエンド | Vite + React (SPA) + TanStack Router | Cloudflare Pages |
+| フロントエンド | Vite + React (SPA) + TanStack Router | Cloudflare Workers(静的アセット) |
 | API | Hono | Cloudflare Workers |
 | DB | Neon (PostgreSQL) + Drizzle ORM | Neon (サーバーレスドライバ経由) |
 | CI/CD | GitHub Actions | — |
@@ -99,6 +99,7 @@ monorepo は Turborepo + Bun workspaces(`apps/*`, `packages/*`)。
 
 ルートの `bun dev` で web(3000)と api(8080)が同時に起動し、`/users`・`/doc`・
 `/openapi.yaml` が動作することは確認済み。
+(#20 で `/users` のルート登録は外した。詳細は [sample-users-crud.md](./sample-users-crud.md) を参照)
 
 ---
 
@@ -176,7 +177,7 @@ Step 5                     #8 E2E + docs
 ### 2. CI/CD
 
 - PR 時: lint / typecheck / test を自動実行
-- main merge 時: `apps/web` → Cloudflare Pages、`apps/api` → Cloudflare Workers へ自動デプロイ
+- main merge 時: `apps/web` → Cloudflare Workers(静的アセット、Worker `kin-niku-log`)、`apps/api` → Cloudflare Workers へ自動デプロイ
 - **本番マイグレーション適用のみ** GitHub Environments の Required reviewers 機能で
   人間承認を挟む(Human on the loop の主要な実装ポイント)
 
