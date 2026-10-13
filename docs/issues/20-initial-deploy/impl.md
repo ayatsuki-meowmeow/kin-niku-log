@@ -1,13 +1,13 @@
 # #20 機能実装前に本番環境へ初回デプロイ — impl.md
 
 - 仕様・決定の出典: `docs/issues/20-initial-deploy/design.md`(決定事項 D1〜D23)。この文書は方針の置き場で、仕様は design.md が正
-- 状態: 実装第 3 周と延長(D22)済み、PR #21 のレビュー対応(D23)済み(本番デプロイ前)
+- 状態: 実装・PR #21 のマージ済み。2026-10-13 に本番デプロイし、確認結果を実装状況 #12・#13 に記録
 
 ## 実装状況
 
 | # | 項目 | 状態 | 結果(確認日と確認した事実) |
 |---|---|---|---|
-| 1 | 事前確認(下の「実装時に確認すること」) | 一部完了 | 2026-10-12: 確認事項 1・2 は D16・D17 で対応済み。残るのは確認事項 4(任意)と、Version URL が残るか(`cf deploy` しないと確認できない)だけ。`workers.dev` サブドメインは `aya-ayatsuki.workers.dev` と確定(ユーザーがダッシュボードで確認)。web は `https://kin-niku-log.aya-ayatsuki.workers.dev`、api は `https://kin-niku-log-api.aya-ayatsuki.workers.dev` |
+| 1 | 事前確認(下の「実装時に確認すること」) | 完了(確認事項 4 は任意のため未確認) | 2026-10-12: 確認事項 1・2 は D16・D17 で対応済み。残るのは確認事項 4(任意)と、Version URL が残るか(`cf deploy` しないと確認できない)だけ。2026-10-13: Version URL はデプロイ後に発行されていないことを確認(#13)。`workers.dev` サブドメインは `aya-ayatsuki.workers.dev` と確定(ユーザーがダッシュボードで確認)。web は `https://kin-niku-log.aya-ayatsuki.workers.dev`、api は `https://kin-niku-log-api.aya-ayatsuki.workers.dev` |
 | 2 | api: `/users` のルート登録を外す | 完了 | 2026-10-12: `app.route('/users', users)` と import を削除。ローカルで `/users` が 404 |
 | 3 | api: `GET /health` の追加 | 完了 | 2026-10-12: `{"status":"ok"}` を 200 で返す(ローカルで確認) |
 | 4 | api: `/doc`・`/openapi.yaml` を本番で無効化(D9) | 完了 | 2026-10-12: `isDev`(`import.meta.env.DEV`)の条件で登録。ローカルは両方 200。v2 の Build Output(`.cloudflare/output/v0/workers/default/bundle/index.js`)で確認: 登録ルートは `/health` のみ、`isDev` の分岐はビルド時に除去、`openapi.yaml` の中身・`/users`・`localhost:3000` は含まれない。`@hono/swagger-ui` は import が残るためモジュールの定数オブジェクトだけがバンドルに残るが、UI の HTML やルートは含まれない |
@@ -18,8 +18,8 @@
 | 9 | docs: `sample-users-crud.md` に冒頭の注記を置き、節 3(`/users` の登録・Swagger UI)と節 4(`routes/index.tsx` の参照)を個別に直す(D14) | 完了 | 2026-10-12: 冒頭の注記と 3 箇所の個別修正を実施。2026-10-13: 「全体像」の図の画面の行、本番で登録しない理由、「画面での使い方」の段落も修正(コードレビュー第 2 周 G3〜G5)。同日、「画面での使い方」の時制を修正(第 3 周 H1、D22) |
 | 10 | `cf build` / `cf deploy --dry-run` での事前確認(D16・D17) | 完了 | 2026-10-12: api は `cf build` 成功、`cf deploy --dry-run` 成功(Total Upload 56.04 KiB、`No bindings found.`)。web は D17 実施後に `cf build` 成功、`cf deploy --dry-run` 成功(Total Upload 0.00 KiB、`No bindings found.`)。詳細は「確認できたこと」 |
 | 11 | `turbo.json` の `build.outputs` を v2 の出力先に合わせる(D18) | 完了 | 2026-10-12: `outputs` を `.cloudflare/output/**` に変更。`vite build` / `cf build` の実出力は api・web とも `.cloudflare/output/v0/` のみ(`dist/` は作られず、残っているのは旧出力)。出力ディレクトリを消して `bun run build` を 2 回続けると、2 回目は両パッケージが `cache hit` で出力 10 ファイルを復元した。出力に `.dev.vars` は含まれない。`dist/**` を参照する他パッケージ・スクリプトは無く、`dist/**` は外した |
-| 12 | 本番デプロイ(人間が承認して `cf deploy`) | 未着手 | |
-| 13 | デプロイ結果・費用上限の確認と記録 | 未着手 | |
+| 12 | 本番デプロイ(人間が承認して `cf deploy`) | 完了 | 2026-10-13: PR #21 のマージ後、ユーザーの承認(「main からデプロイして」)を受けて main(`38cd498`)からオーケストレーターが実行。事前に `bun install --frozen-lockfile`、両方の `cf build` と `cf deploy --dry-run` が成功(web 0.00 KiB、api 56.08 KiB、ともに `No bindings found.`)。api の本番バンドルは `/health` のみで、`openapi`・`localhost:3000`・`/users`・`/doc` を含まず、本番 web のオリジンを含む。両方の `worker.config.json` が `previewUrls:false`。web(`kin-niku-log`、Version `85cce261`)→ api(`kin-niku-log-api`、Version `fe716c66`)の順に `cf deploy`。web の公開 URL `https://kin-niku-log.aya-ayatsuki.workers.dev` は `PRODUCTION_WEB_ORIGIN` と一致 |
+| 13 | デプロイ結果・費用上限の確認と記録 | 完了 | 2026-10-13: web の `/` は 200 でプレースホルダー(SPA の `index.html`)を返し、未定義のパスも 200(`single-page-application`)。api の `GET /health` は 200 `{"status":"ok"}`、`/users`・`/doc`・`/openapi.yaml` は 404(デプロイ直後の 1 回目だけ `/openapi.yaml` が 500 だったが、その後は繰り返し 404 で安定。反映途中の一時的な応答とみなす)。CORS は `Origin` が本番 web なら `access-control-allow-origin` が付き、`http://localhost:3000` や別オリジンには付かない。`cf workers secrets list` は両 Worker とも空(`DATABASE_URL` 未登録)。Version の Preview URL(`<version 先頭 8 桁>-<Worker 名>.aya-ayatsuki.workers.dev`)は両 Worker とも 404(`error code: 1042`)で発行されていない。費用: Workers Free(ユーザー確認済み、D3)で、上限超過時は Error 1027 で止まり課金されない。DB には接続していないため Neon 側の挙動は調査結果の記載にとどまる |
 | 14 | D19: `docs/project-overview.md` の `/users` 確認済み記述に注記 | 完了 | 2026-10-12: 「確認済み」の直後に、#20 で `/users` のルート登録を外したこと(`sample-users-crud.md` 参照)を 1 行追記 |
 | 15 | D20: web の dev サーバーのポート固定 | 完了 | 2026-10-12: `apps/web/vite.config.ts` に `server.strictPort: true`。ローカル動作確認で web は 3000 で起動 |
 | 16 | web の `tsconfig.json` の `include` に `cloudflare.config.ts` を追加(コードレビュー F20) | 完了 | 2026-10-12: `tsc --listFilesOnly` で型チェック対象に入ることを確認、`check-types` 通過 |
