@@ -16,7 +16,7 @@ AI エージェント活用ワークフローのブラッシュアップも目�
 | 領域 | 技術 | デプロイ先 |
 |------|------|------------|
 | モノレポ | Turborepo + Bun workspaces | — |
-| フロントエンド | Vite + React (SPA) + TanStack Router | Cloudflare Pages |
+| フロントエンド | Vite + React (SPA) + TanStack Router | Cloudflare Workers(静的アセット) |
 | API | Hono (Vite + `@cloudflare/vite-plugin` + `cf` CLI で開発・ビルド) | Cloudflare Workers |
 | DB | Neon (PostgreSQL) + Drizzle ORM (`neon-http` ドライバ) | Neon |
 | スキーマ定義 | OpenAPI (スキーマファースト) | — |
@@ -71,7 +71,7 @@ bun dev
 - web から見た API の接続先は `VITE_API_URL` で変更できる(設定例は `apps/web/.env.example`。未設定時は `http://localhost:8080`)
 
 - フロントエンド: http://localhost:3000
-- バックエンド: http://localhost:8080
+- バックエンド: http://localhost:8080(`GET /health` は DB に触れない疎通確認用で、`{"status":"ok"}` を返す。`openapi.yaml` には載せない)
 - Swagger UI: http://localhost:8080/doc
 
 ## コマンド一覧
@@ -102,7 +102,7 @@ bun dev
 
 | コマンド | 内容 |
 |----------|------|
-| `bun run dev` | 開発サーバー起動(`vite`、port 3000) |
+| `bun run dev` | 開発サーバー起動(`vite`。`@cloudflare/vite-plugin` により Workers ランタイム(workerd)上で動作、port 3000 固定。3000 番が使用中なら別ポートで起動せずエラーになる) |
 | `bun run build` | ビルド(`vite build`) |
 | `bun run preview` | ビルド結果のプレビュー(`vite preview`) |
 | `bun run lint` | lint |

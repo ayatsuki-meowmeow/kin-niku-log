@@ -2,6 +2,12 @@
 
 scaffold に含まれている users の CRUD 実装を例に、各レイヤーがどう繋がっているかを説明する。
 
+> **注記(#20)**: 初回の本番デプロイ(#20)に合わせて、画面(`apps/web/src/routes/index.tsx` の users 一覧)と
+> `/users` のルート登録(`apps/api/src/index.ts`)は外した。そのため、ローカル開発でもこの users 画面と
+> `/users` API は使えない。サンプル一式(コード・マイグレーション・seed・生成物・このドキュメント)は、
+> 本番の users テーブルを作る issue で削除する予定。外す前のコードは git の履歴(#20 より前のコミット)で参照できる。
+> 以下の説明は、外す前の状態を前提にしている。ただし、#20 で変わった箇所は本文中で「(#20)」と明記し、現状に合わせて書いている。
+
 ## 全体像
 
 ```
@@ -19,7 +25,7 @@ apps/api/src/middleware/db.ts ← リクエストごとに createDb(c.env.DATABA
 apps/api/src/crud/            ← DB 操作関数 (db を第 1 引数で受け取る)
 apps/api/src/routes/          ← Hono ルーティング (c.get('db') で DB を取得)
 
-apps/web/src/routes/index.tsx ← 画面 (TanStack Router のルート + TanStack Query + React Hook Form)
+apps/web/src/routes/index.tsx ← 画面 (TanStack Router のルート + TanStack Query + React Hook Form)。(#20) 現在は API を呼ばないプレースホルダーに差し替え済み
 apps/web/src/router.tsx       ← ルートツリーの登録
 ```
 
@@ -128,12 +134,14 @@ users.delete('/:id', ...)                        // DELETE /users/:id
 各ハンドラは `c.get('db')` で取得した `Database` を crud 関数に渡す
 (例: `getUsers(c.get('db'))`)。
 `zValidator` に `@repo/schema` の `createUserSchema` を渡すことで、リクエストボディを自動バリデーションしている。
-`apps/api/src/index.ts` で `app.route('/users', users)` として登録している。
+`apps/api/src/index.ts` では登録していない(#20 で `app.route('/users', users)` を外した)。
 
 ### Swagger UI
 
-開発中は `http://localhost:8080/doc` で全エンドポイントを確認・試打できる。
+ローカル開発中のみ `http://localhost:8080/doc` で `openapi.yaml` のエンドポイントを確認できる。
+`/users` は `openapi.yaml` に残っているので Swagger UI には表示されるが、ルート登録を外したため呼ぶと 404 になる(#20)。
 スキーマ本体は `http://localhost:8080/openapi.yaml` で配信される(`openapi.yaml` を `?raw` で取り込んでいる)。
+`/doc` と `/openapi.yaml` は本番ビルドでは登録しない(サンプルの users API の構造を外に見せないため。#20 の決定は `docs/issues/20-initial-deploy/design.md` の D9 を参照)。
 
 ---
 
@@ -160,8 +168,10 @@ bun run generate
 
 ### 画面での使い方
 
-`apps/web/src/routes/index.tsx` を参考にする(`createRoute` で定義し、`src/router.tsx` の
-`routeTree` に登録されている)。API の呼び出しは `apps/web/src/lib/fetcher.ts` が担い、
+git の履歴(#20 より前のコミット)の `apps/web/src/routes/index.tsx` を参考にする(現在の `/` はプレースホルダー)。
+その画面は `createRoute` で定義され、`src/router.tsx` の `routeTree` に登録されていた。
+当時の画面は `apps/web/src/lib/fetcher.ts` 経由で API を呼んでいた。
+`fetcher.ts` 自体は今も残っているが、現在の `/` からは呼ばれていない。
 接続先は `VITE_API_URL`(未設定時は `http://localhost:8080`)。
 
 **データ取得**

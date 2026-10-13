@@ -20,5 +20,6 @@ export default defineConfig({
 			"nodejs_compat",
 		],
 		entrypoint: "src/index.ts",
+		previewUrls: false,
 	},
 });
