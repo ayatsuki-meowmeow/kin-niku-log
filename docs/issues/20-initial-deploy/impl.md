@@ -1,7 +1,7 @@
 # #20 機能実装前に本番環境へ初回デプロイ — impl.md
 
-- 仕様・決定の出典: `docs/issues/20-initial-deploy/design.md`(決定事項 D1〜D22)。この文書は方針の置き場で、仕様は design.md が正
-- 状態: 実装第 3 周と延長(D22)済み、レビュー指摘 0 件(本番デプロイ前)
+- 仕様・決定の出典: `docs/issues/20-initial-deploy/design.md`(決定事項 D1〜D23)。この文書は方針の置き場で、仕様は design.md が正
+- 状態: 実装第 3 周と延長(D22)済み、PR #21 のレビュー対応(D23)済み(本番デプロイ前)
 
 ## 実装状況
 
@@ -11,7 +11,7 @@
 | 2 | api: `/users` のルート登録を外す | 完了 | 2026-10-12: `app.route('/users', users)` と import を削除。ローカルで `/users` が 404 |
 | 3 | api: `GET /health` の追加 | 完了 | 2026-10-12: `{"status":"ok"}` を 200 で返す(ローカルで確認) |
 | 4 | api: `/doc`・`/openapi.yaml` を本番で無効化(D9) | 完了 | 2026-10-12: `isDev`(`import.meta.env.DEV`)の条件で登録。ローカルは両方 200。v2 の Build Output(`.cloudflare/output/v0/workers/default/bundle/index.js`)で確認: 登録ルートは `/health` のみ、`isDev` の分岐はビルド時に除去、`openapi.yaml` の中身・`/users`・`localhost:3000` は含まれない。`@hono/swagger-ui` は import が残るためモジュールの定数オブジェクトだけがバンドルに残るが、UI の HTML やルートは含まれない |
-| 5 | api: CORS の許可オリジンを環境で切り替える(D10) | 完了 | 2026-10-12: ビルド時定数方式。`isDev` ならローカル `http://localhost:3000`、そうでなければ `PRODUCTION_WEB_ORIGIN`(`apps/api/src/index.ts` の定数 1 箇所、`https://kin-niku-log.aya-ayatsuki.workers.dev`)。ローカルで `Origin: http://localhost:3000` には `access-control-allow-origin` が付き、別オリジンには付かない。許可オリジンは本番 web の URL のみ(上の #4 の bundle で確認)。値は確定済みなので未設定ビルドの扱い(失敗/全拒否)は発生しない |
+| 5 | api: CORS の許可オリジンを環境で切り替える(D10) | 完了 | 2026-10-12: ビルド時定数方式。`isDev` ならローカル `http://localhost:3000`、そうでなければ `PRODUCTION_WEB_ORIGIN`(`apps/api/src/config.ts` の定数 1 箇所。D23 で `index.ts` から移した、`https://kin-niku-log.aya-ayatsuki.workers.dev`)。ローカルで `Origin: http://localhost:3000` には `access-control-allow-origin` が付き、別オリジンには付かない。許可オリジンは本番 web の URL のみ(上の #4 の bundle で確認)。値は確定済みなので未設定ビルドの扱い(失敗/全拒否)は発生しない |
 | 6 | api: プレビュー URL(`previewUrls`)の無効化(D15) | 完了 | 2026-10-12: `cloudflare.config.ts` の `worker.previewUrls: false`。v2 の `workers/default/worker.config.json` に `previewUrls:false` が反映される。型定義上の既定値も `false` |
 | 7 | web: `/` をプレースホルダーに差し替え(D1・D8) | 完了 | 2026-10-12: `apps/web/src/routes/index.tsx` を Hello World に差し替え(API を呼ばない)。lint / check-types / build 通過 |
 | 8 | web: 静的アセットだけの Worker `kin-niku-log` の設定(プレビュー URL の無効化を含む、D7・D15) | 完了 | 2026-10-12: `apps/web/cloudflare.config.ts`(name・compatibilityDate・`assets.notFoundHandling: "single-page-application"`・`previewUrls: false`)、`vite.config.ts` に `cloudflare()` を組み込み、D17 で web に `cf` を追加。`eslint.config.js` に `.cloudflare/**` の ignore を追加 |
@@ -24,12 +24,14 @@
 | 15 | D20: web の dev サーバーのポート固定 | 完了 | 2026-10-12: `apps/web/vite.config.ts` に `server.strictPort: true`。ローカル動作確認で web は 3000 で起動 |
 | 16 | web の `tsconfig.json` の `include` に `cloudflare.config.ts` を追加(コードレビュー F20) | 完了 | 2026-10-12: `tsc --listFilesOnly` で型チェック対象に入ることを確認、`check-types` 通過 |
 | 17 | D21(README.md・`project-overview.md`。コードレビュー第 2 周 G1・G2・G7)と、`sample-users-crud.md` の修正(D14 の範囲。G3〜G5) | 完了 | 2026-10-13: web のデプロイ先を「Cloudflare Workers(静的アセット)」に置き換え(README 1 箇所、project-overview 2 箇所)、README の web `dev` の説明に workerd・ポート 3000 固定を追記、`GET /health` を README に追記、`sample-users-crud.md` の 3 箇所を修正。lint / check-types / build / `bun install --frozen-lockfile` 通過 |
+| 18 | D23: 環境情報を `apps/api/src/config.ts` に切り出す(PR #21 のレビューコメント) | 完了 | 2026-10-13: `LOCAL_WEB_ORIGIN`・`PRODUCTION_WEB_ORIGIN`・`isDev`・`resolveAllowedOrigins`・`allowedOrigins` をコメントごと `config.ts` に移し、`isDev` と `allowedOrigins` だけを export。挙動の変更なし。lint / check-types / build 通過。本番バンドル(`bundle/index.js`)を再確認: `/health` のみ登録、`openapi`・`localhost:3000`・`/users`・`/doc` のルートなし、本番 web のオリジンあり |
 
 ## 構成(変更・追加の対象)
 
 | 対象 | 変更 |
 |---|---|
 | `apps/api/src/index.ts` | `/users` 登録の削除、`/health` 追加、`/doc`・`/openapi.yaml` の本番無効化、CORS 設定の差し替え |
+| `apps/api/src/config.ts`(新規) | `isDev`・ローカル/本番の web オリジンの定数・許可オリジン(`allowedOrigins`)を置く(D23)。`index.ts` は `isDev` と `allowedOrigins` を import して使う |
 | `apps/api/cloudflare.config.ts` | プレビュー URL を無効にする(D15)。`DATABASE_URL` の `bindings.secret()` は宣言しない(D6) |
 | `apps/api/package.json` | `@cloudflare/vite-plugin` を `2.0.0-beta.sha-91c870c02` に `^` なしで固定して更新(D16) |
 | `apps/api/vite.config.ts` | v2 で `experimental.newConfig` が不要になり、`cloudflare()` のみにする |
@@ -230,6 +232,16 @@
 ### 延長(D22)の簡易レビュー(2026-10-13)
 
 出所: code(1 レンズの簡易レビュー)。H1 は解消、事実関係(現在の `index.tsx`・`router.tsx`・`fetcher.ts` の接続先、#20 より前の `index.tsx`)にも誤りなし。指摘 1 件(I1: 最終行「接続先は〜」の主語が省略されている)は採点 50 で閾値未満のため除外した。採点 75 以上の指摘は 0 件。lint / check-types / build 通過。
+
+### PR #21 のレビュー(2026-10-13、ユーザー)
+
+出所: ユーザーの GitHub レビュー。
+
+1. `apps/api/src/index.ts` の `PRODUCTION_WEB_ORIGIN` などの環境情報は `config.ts` のようなファイルにまとめる(将来は環境変数にするかも)
+2. `resolveAllowedOrigins` などはアプリ全般の設定として、どこからでも参照してよい層に置く
+   - 1・2 の状態: 対応済み / 対応: 置き場所を design.md の Q3 でエスカレーションし、D23(`apps/api/src/config.ts` を新設、ビルド時定数のまま)で対応(実装状況 #18)。コードの移動のみで挙動は変えていないため、オーケストレーターが差分(定義の移動と import の追加のみ)と本番バンドルの再確認で検証した
+3. `docs/` の記述を GitHub(公開リポジトリ)に公開して問題ないか確認する
+   - 状態: 確認済み・変更なし / 結果: docs 4 ファイルと docs の過去コミットに、秘密情報(トークン・接続文字列・秘密鍵)、アカウント ID・Neon の ID やホスト名、ローカルの絶対パスは無い。本番 URL はコードにも同じ値があり、費用・クロール対策の記述は公開の料金体系から推測できる範囲で、止まるのは `/health` だけのため、現段階では伏せない。DB を使う機能を公開するときに再判断する
 
 ## 実装時に確認できたこと(2026-10-12)
 
