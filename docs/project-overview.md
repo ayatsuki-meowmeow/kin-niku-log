@@ -89,7 +89,7 @@ scaffold 各レイヤーの繋がりは [sample-users-crud.md](./sample-users-cr
 | DB 接続 | `drizzle-orm/neon-http` + `@neondatabase/serverless`。`src/middleware/db.ts` が `c.env.DATABASE_URL` から接続を生成し、ハンドラは `c.get('db')` で取得 |
 | ローカル開発の DB | Neon ブランチ(接続文字列は `apps/api/.dev.vars`)。`docker-compose.yml` は廃止。当面は `production` ブランチを開発にも使う(#1 の決定) |
 | マイグレーション | `drizzle-kit`(`apps/api/drizzle.config.ts` が `.dev.vars` を読み、`DATABASE_URL_DIRECT` を優先、無ければ `DATABASE_URL`) |
-| Node | Volta でルート `package.json` に 22.23.3 を固定 |
+| Node | Volta でルート `package.json` に 22.23.4 を固定 |
 | `package.json` の `name` | `kin-niku-log` |
 | CI/CD | 未設定(Phase 2 で GitHub Actions を導入) |
 

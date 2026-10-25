@@ -43,7 +43,7 @@ AI エージェント活用ワークフローのブラッシュアップも目�
 ### 前提
 
 - Bun がインストール済みであること(パッケージマネージャー / モノレポのタスク実行に使う)
-- Node 22.23.3(ルート `package.json` の `volta` で固定。[Volta](https://volta.sh/) の利用を推奨。
+- Node 22.23.4(ルート `package.json` の `volta` で固定。[Volta](https://volta.sh/) の利用を推奨。
   Volta があればこのリポジトリ配下で自動的に該当バージョンが使われる)
 - Neon のプロジェクトにアクセスでき、接続文字列(pooled / direct)を取得できること
 
